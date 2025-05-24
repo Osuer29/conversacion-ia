@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IA Conversacional con Voz</title>
+<title>IA Conversacional con Voz y Profundización</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -19,7 +19,7 @@
   }
   #chatContainer {
     width: 90%;
-    max-width: 600px;
+    max-width: 700px;
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 10px;
@@ -30,14 +30,19 @@
   }
   .mensaje {
     margin: 10px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 90%;
   }
   .usuario {
+    background-color: #e0f7fa;
+    align-self: flex-end;
     text-align: right;
-    color: #0066cc;
   }
   .ia {
+    background-color: #ffe0b2;
+    align-self: flex-start;
     text-align: left;
-    color: #333;
   }
   #status {
     margin-bottom: 10px;
@@ -60,12 +65,14 @@
     margin-top: 20px;
     font-size: 0.9em;
     color: #b00;
+    max-width: 700px;
+    text-align: center;
   }
 </style>
 </head>
 <body>
 
-<h1>IA Conversacional con Voz</h1>
+<h1>IA Conversacional con Voz y Profundización</h1>
 <div id="status">Pulsa "Hablar" para comenzar.</div>
 <div id="chatContainer"></div>
 <button id="btnHablar">🎙️ Hablar</button>
@@ -75,16 +82,14 @@
 </div>
 
 <script>
-  // Referencias a elementos
   const btnHablar = document.getElementById('btnHablar');
   const chatContainer = document.getElementById('chatContainer');
   const statusDiv = document.getElementById('status');
 
-  // Variable para reconocimiento de voz
   let recognition;
-  let isReconociedo = false;
+  let isReconociendo = false;
 
-  // Función para agregar mensajes al chat
+  // Función para agregar mensajes
   function agregarMensaje(text, clase) {
     const div = document.createElement('div');
     div.className = 'mensaje ' + clase;
@@ -93,53 +98,116 @@
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
-  // Función para reproducir respuesta (TTS)
+  // Función para hablar
   function hablar(texto) {
     if ('speechSynthesis' in window) {
       const utter = new SpeechSynthesisUtterance(texto);
-      // Puedes ajustar la voz, velocidad, tono aquí
       window.speechSynthesis.speak(utter);
-    } else {
-      alert('Tu navegador no soporta Speech Synthesis.');
     }
   }
 
-  // Función para iniciar reconocimiento de voz
+  // Función simulada para llamar a backend y analizar
+  async function analizarYProfundizar(texto) {
+    // Aquí en producción haces una llamada fetch a tu backend
+    // ejemplo:
+    /*
+    const response = await fetch('https://tu-backend.com/api/profundizar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto })
+    });
+    const data = await response.json();
+    return data;
+    */
+
+    // Simulación: análisis y respuestas
+    // Detectamos palabras clave y sentimientos
+    let palabrasClave = [];
+    let sentimientos = [];
+
+    const textoLower = texto.toLowerCase();
+
+    if (textoLower.includes('triste') || textoLower.includes('soledad')) {
+      palabrasClave.push('tristeza', 'soledad');
+      sentimientos.push('tristeza');
+    }
+    if (textoLower.includes('estres') || textoLower.includes('ansiedad')) {
+      palabrasClave.push('estrés', 'ansiedad');
+      sentimientos.push('ansiedad');
+    }
+
+    // Crear una respuesta profunda y empática
+    let respuestaProfunda = '';
+
+    if (sentimientos.includes('tristeza') || sentimientos.includes('soledad')) {
+      respuestaProfunda = 'Parece que estás atravesando momentos de tristeza y soledad. ¿Te gustaría contarme más sobre lo que estás sintiendo o qué te preocupa?';
+    } else if (sentimientos.includes('ansiedad')) {
+      respuestaProfunda = 'Veo que estás sintiendo ansiedad. ¿Quieres que te sugiera algunas técnicas para relajarte o hablar más sobre lo que te preocupa?';
+    } else {
+      respuestaProfunda = 'Gracias por compartir eso. ¿Puedes contarme más para entender mejor y poder ayudarte?';
+    }
+
+    // Solución general o consejo
+    const soluciones = 'Recuerda que hablar con amigos, practicar mindfulness o buscar apoyo profesional puede marcar la diferencia. ¿Quieres que te ayude con alguna técnica específica?';
+
+    // Retornar todo
+    return {
+      palabrasClave,
+      sentimientos,
+      respuestaProfunda,
+      soluciones
+    };
+  }
+
+  // Procesar texto del usuario
+  async function procesarTexto(texto) {
+    agregarMensaje('Usuario: ' + texto, 'usuario');
+
+    // Llamar a backend simulado
+    const resultado = await analizarYProfundizar(texto);
+
+    // Mostrar respuesta profunda
+    agregarMensaje('IA: ' + resultado.respuestaProfunda, 'ia');
+    hablar(resultado.respuestaProfunda);
+
+    // Después, ofrecer soluciones
+    setTimeout(() => {
+      agregarMensaje('Sugerencia: ' + resultado.soluciones, 'ia');
+      hablar(resultado.soluciones);
+    }, 1500);
+  }
+
+  // Reconocimiento de voz
   function iniciarReconocimiento() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       alert('Tu navegador no soporta reconocimiento de voz.');
       return;
     }
-
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
-    recognition.lang = 'es-ES'; // idioma español
+    recognition.lang = 'es-ES';
     recognition.continuous = false;
     recognition.interimResults = false;
 
     recognition.onstart = () => {
-      isReconociedo = true;
+      isReconociendo = true;
       statusDiv.innerText = 'Escuchando... Habla ahora.';
       btnHablar.innerText = '🛑 Detener';
     };
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      agregarMensaje(transcript, 'usuario');
-      statusDiv.innerText = 'Procesando respuesta...';
-
-      // Aquí puedes enviar el texto a tu backend para análisis y obtener respuesta
       procesarTexto(transcript);
     };
 
-    recognition.onerror = (event) => {
-      console.error('Error de reconocimiento:', event.error);
-      statusDiv.innerText = 'Error: ' + event.error;
+    recognition.onerror = (e) => {
+      console.error('Error reconocimiento:', e.error);
+      statusDiv.innerText = 'Error: ' + e.error;
       detenerReconocimiento();
     };
 
     recognition.onend = () => {
-      isReconociedo = false;
+      isReconociendo = false;
       btnHablar.innerText = '🎙️ Hablar';
       if (statusDiv.innerText.startsWith('Escuchando')) {
         statusDiv.innerText = 'Pulsa "Hablar" para comenzar.';
@@ -149,48 +217,21 @@
     recognition.start();
   }
 
-  // Función para detener reconocimiento
   function detenerReconocimiento() {
-    if (recognition && isReconociedo) {
+    if (recognition && isReconociendo) {
       recognition.stop();
     }
   }
 
-  // Función para procesar el texto del usuario
- function procesarTexto(texto) {
-    // En un sistema real, aquí enviarías el texto a tu backend (API) que usa NLP y LLM
-    // Por este ejemplo, simularemos una respuesta simple
-
-    // Simular respuesta basada en el texto
-    let respuesta = '';
-
-    // Ejemplo simple: si el usuario dice algo relacionado con ánimo, responder con empatía
-    if (texto.toLowerCase().includes('estoy triste') || texto.toLowerCase().includes('me siento mal')) {
-      respuesta = 'Lamento que te sientas así. ¿Quieres hablar más sobre ello o te puedo sugerir algunos ejercicios de relajación?';
-    } else if (texto.toLowerCase().includes('ayuda') || texto.toLowerCase().includes('estresado')) {
-      respuesta = 'Estoy aquí para escucharte. ¿Quieres que te recomiende algunas técnicas de respiración o mindfulness?';
-    } else {
-      // Respuesta genérica
-      respuesta = 'Gracias por compartir eso conmigo. ¿Quieres contarme más o puedo ayudarte con algo en específico?';
-    }
-
-    agregarMensaje('IA: ' + respuesta, 'ia');
-
-    // Reproducir respuesta
-    hablar(respuesta);
-
-    statusDiv.innerText = 'Pulsa "Hablar" para continuar.';
-  }
-
-  // Evento al hacer clic en botón
-  btnHablar.addEventListener('click', () => {
-    if (!isReconociedo) {
+  // Evento botón
+  document.getElementById('btnHablar').addEventListener('click', () => {
+    if (!isReconociendo) {
       iniciarReconocimiento();
     } else {
       detenerReconocimiento();
     }
   });
-
 </script>
+
 </body>
 </html>
