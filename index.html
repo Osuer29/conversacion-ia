@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IA Conversacional con Voz</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    color: #333;
+  }
+  #chatContainer {
+    width: 90%;
+    max-width: 600px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fff;
+    height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  .mensaje {
+    margin: 10px 0;
+  }
+  .usuario {
+    text-align: right;
+    color: #0066cc;
+  }
+  .ia {
+    text-align: left;
+    color: #333;
+  }
+  #status {
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #555;
+  }
+  button {
+    background-color: #0066cc;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+  }
+  button:disabled {
+    background-color: #999;
+  }
+  #descargo {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #b00;
+  }
+</style>
+</head>
+<body>
+
+<h1>IA Conversacional con Voz</h1>
+<div id="status">Pulsa "Hablar" para comenzar.</div>
+<div id="chatContainer"></div>
+<button id="btnHablar">🎙️ Hablar</button>
+<div id="descargo">
+  <strong>Importante:</strong> Esta IA es una herramienta de apoyo emocional, no un terapeuta.  
+  En caso de emergencia, llama a tu línea de ayuda local.
+</div>
+
+<script>
+  // Referencias a elementos
+  const btnHablar = document.getElementById('btnHablar');
+  const chatContainer = document.getElementById('chatContainer');
+  const statusDiv = document.getElementById('status');
+
+  // Variable para reconocimiento de voz
+  let recognition;
+  let isReconociedo = false;
+
+  // Función para agregar mensajes al chat
+  function agregarMensaje(text, clase) {
+    const div = document.createElement('div');
+    div.className = 'mensaje ' + clase;
+    div.innerText = text;
+    chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  // Función para reproducir respuesta (TTS)
+  function hablar(texto) {
+    if ('speechSynthesis' in window) {
+      const utter = new SpeechSynthesisUtterance(texto);
+      // Puedes ajustar la voz, velocidad, tono aquí
+      window.speechSynthesis.speak(utter);
+    } else {
+      alert('Tu navegador no soporta Speech Synthesis.');
+    }
+  }
+
+  // Función para iniciar reconocimiento de voz
+  function iniciarReconocimiento() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert('Tu navegador no soporta reconocimiento de voz.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES'; // idioma español
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      isReconociedo = true;
+      statusDiv.innerText = 'Escuchando... Habla ahora.';
+      btnHablar.innerText = '🛑 Detener';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      agregarMensaje(transcript, 'usuario');
+      statusDiv.innerText = 'Procesando respuesta...';
+
+      // Aquí puedes enviar el texto a tu backend para análisis y obtener respuesta
+      procesarTexto(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Error de reconocimiento:', event.error);
+      statusDiv.innerText = 'Error: ' + event.error;
+      detenerReconocimiento();
+    };
+
+    recognition.onend = () => {
+      isReconociedo = false;
+      btnHablar.innerText = '🎙️ Hablar';
+      if (statusDiv.innerText.startsWith('Escuchando')) {
+        statusDiv.innerText = 'Pulsa "Hablar" para comenzar.';
+      }
+    };
+
+    recognition.start();
+  }
+
+  // Función para detener reconocimiento
+  function detenerReconocimiento() {
+    if (recognition && isReconociedo) {
+      recognition.stop();
+    }
+  }
+
+  // Función para procesar el texto del usuario
+ function procesarTexto(texto) {
+    // En un sistema real, aquí enviarías el texto a tu backend (API) que usa NLP y LLM
+    // Por este ejemplo, simularemos una respuesta simple
+
+    // Simular respuesta basada en el texto
+    let respuesta = '';
+
+    // Ejemplo simple: si el usuario dice algo relacionado con ánimo, responder con empatía
+    if (texto.toLowerCase().includes('estoy triste') || texto.toLowerCase().includes('me siento mal')) {
+      respuesta = 'Lamento que te sientas así. ¿Quieres hablar más sobre ello o te puedo sugerir algunos ejercicios de relajación?';
+    } else if (texto.toLowerCase().includes('ayuda') || texto.toLowerCase().includes('estresado')) {
+      respuesta = 'Estoy aquí para escucharte. ¿Quieres que te recomiende algunas técnicas de respiración o mindfulness?';
+    } else {
+      // Respuesta genérica
+      respuesta = 'Gracias por compartir eso conmigo. ¿Quieres contarme más o puedo ayudarte con algo en específico?';
+    }
+
+    agregarMensaje('IA: ' + respuesta, 'ia');
+
+    // Reproducir respuesta
+    hablar(respuesta);
+
+    statusDiv.innerText = 'Pulsa "Hablar" para continuar.';
+  }
+
+  // Evento al hacer clic en botón
+  btnHablar.addEventListener('click', () => {
+    if (!isReconociedo) {
+      iniciarReconocimiento();
+    } else {
+      detenerReconocimiento();
+    }
+  });
+
+</script>
+</body>
+</html>
