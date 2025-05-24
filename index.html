@@ -1,237 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>IA Conversacional con Voz y Profundización</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f4f8;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    color: #333;
-  }
-  #chatContainer {
-    width: 90%;
-    max-width: 700px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    background: #fff;
-    height: 400px;
-    overflow-y: auto;
-    margin-bottom: 20px;
-  }
-  .mensaje {
-    margin: 10px 0;
-    padding: 8px 12px;
-    border-radius: 8px;
-    max-width: 90%;
-  }
-  .usuario {
-    background-color: #e0f7fa;
-    align-self: flex-end;
-    text-align: right;
-  }
-  .ia {
-    background-color: #ffe0b2;
-    align-self: flex-start;
-    text-align: left;
-  }
-  #status {
-    margin-bottom: 10px;
-    font-style: italic;
-    color: #555;
-  }
-  button {
-    background-color: #0066cc;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-  }
-  button:disabled {
-    background-color: #999;
-  }
-  #descargo {
-    margin-top: 20px;
-    font-size: 0.9em;
-    color: #b00;
-    max-width: 700px;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Luz - Tu guía emocional</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <div class="container">
+    <h1>Luz 🌟</h1>
+    <p>Estoy aquí para escucharte. Presiona el botón y háblame cuando estés listo.</p>
+    
+    <button id="recordButton">🎙️ Hablar</button>
+    <p id="status">Presiona para comenzar a grabar...</p>
+    
+    <div class="conversation">
+      <h2>Tu mensaje:</h2>
+      <p id="userText">...</p>
+      
+      <h2>Luz responde:</h2>
+      <p id="response">...</p>
+    </div>
+  </div>
 
-<h1>IA Conversacional con Voz y Profundización</h1>
-<div id="status">Pulsa "Hablar" para comenzar.</div>
-<div id="chatContainer"></div>
-<button id="btnHablar">🎙️ Hablar</button>
-<div id="descargo">
-  <strong>Importante:</strong> Esta IA es una herramienta de apoyo emocional, no un terapeuta.  
-  En caso de emergencia, llama a tu línea de ayuda local.
-</div>
-
-<script>
-  const btnHablar = document.getElementById('btnHablar');
-  const chatContainer = document.getElementById('chatContainer');
-  const statusDiv = document.getElementById('status');
-
-  let recognition;
-  let isReconociendo = false;
-
-  // Función para agregar mensajes
-  function agregarMensaje(text, clase) {
-    const div = document.createElement('div');
-    div.className = 'mensaje ' + clase;
-    div.innerText = text;
-    chatContainer.appendChild(div);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  // Función para hablar
-  function hablar(texto) {
-    if ('speechSynthesis' in window) {
-      const utter = new SpeechSynthesisUtterance(texto);
-      window.speechSynthesis.speak(utter);
-    }
-  }
-
-  // Función simulada para llamar a backend y analizar
-  async function analizarYProfundizar(texto) {
-    // Aquí en producción haces una llamada fetch a tu backend
-    // ejemplo:
-    /*
-    const response = await fetch('https://tu-backend.com/api/profundizar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texto })
-    });
-    const data = await response.json();
-    return data;
-    */
-
-    // Simulación: análisis y respuestas
-    // Detectamos palabras clave y sentimientos
-    let palabrasClave = [];
-    let sentimientos = [];
-
-    const textoLower = texto.toLowerCase();
-
-    if (textoLower.includes('triste') || textoLower.includes('soledad')) {
-      palabrasClave.push('tristeza', 'soledad');
-      sentimientos.push('tristeza');
-    }
-    if (textoLower.includes('estres') || textoLower.includes('ansiedad')) {
-      palabrasClave.push('estrés', 'ansiedad');
-      sentimientos.push('ansiedad');
-    }
-
-    // Crear una respuesta profunda y empática
-    let respuestaProfunda = '';
-
-    if (sentimientos.includes('tristeza') || sentimientos.includes('soledad')) {
-      respuestaProfunda = 'Parece que estás atravesando momentos de tristeza y soledad. ¿Te gustaría contarme más sobre lo que estás sintiendo o qué te preocupa?';
-    } else if (sentimientos.includes('ansiedad')) {
-      respuestaProfunda = 'Veo que estás sintiendo ansiedad. ¿Quieres que te sugiera algunas técnicas para relajarte o hablar más sobre lo que te preocupa?';
-    } else {
-      respuestaProfunda = 'Gracias por compartir eso. ¿Puedes contarme más para entender mejor y poder ayudarte?';
-    }
-
-    // Solución general o consejo
-    const soluciones = 'Recuerda que hablar con amigos, practicar mindfulness o buscar apoyo profesional puede marcar la diferencia. ¿Quieres que te ayude con alguna técnica específica?';
-
-    // Retornar todo
-    return {
-      palabrasClave,
-      sentimientos,
-      respuestaProfunda,
-      soluciones
-    };
-  }
-
-  // Procesar texto del usuario
-  async function procesarTexto(texto) {
-    agregarMensaje('Usuario: ' + texto, 'usuario');
-
-    // Llamar a backend simulado
-    const resultado = await analizarYProfundizar(texto);
-
-    // Mostrar respuesta profunda
-    agregarMensaje('IA: ' + resultado.respuestaProfunda, 'ia');
-    hablar(resultado.respuestaProfunda);
-
-    // Después, ofrecer soluciones
-    setTimeout(() => {
-      agregarMensaje('Sugerencia: ' + resultado.soluciones, 'ia');
-      hablar(resultado.soluciones);
-    }, 1500);
-  }
-
-  // Reconocimiento de voz
-  function iniciarReconocimiento() {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      alert('Tu navegador no soporta reconocimiento de voz.');
-      return;
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = 'es-ES';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      isReconociendo = true;
-      statusDiv.innerText = 'Escuchando... Habla ahora.';
-      btnHablar.innerText = '🛑 Detener';
-    };
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      procesarTexto(transcript);
-    };
-
-    recognition.onerror = (e) => {
-      console.error('Error reconocimiento:', e.error);
-      statusDiv.innerText = 'Error: ' + e.error;
-      detenerReconocimiento();
-    };
-
-    recognition.onend = () => {
-      isReconociendo = false;
-      btnHablar.innerText = '🎙️ Hablar';
-      if (statusDiv.innerText.startsWith('Escuchando')) {
-        statusDiv.innerText = 'Pulsa "Hablar" para comenzar.';
-      }
-    };
-
-    recognition.start();
-  }
-
-  function detenerReconocimiento() {
-    if (recognition && isReconociendo) {
-      recognition.stop();
-    }
-  }
-
-  // Evento botón
-  document.getElementById('btnHablar').addEventListener('click', () => {
-    if (!isReconociendo) {
-      iniciarReconocimiento();
-    } else {
-      detenerReconocimiento();
-    }
-  });
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
